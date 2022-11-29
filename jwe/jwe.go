@@ -1,5 +1,9 @@
 package jwe
 
+import (
+	"gopkg.in/square/go-jose.v2"
+)
+
 type Module struct{}
 
 func New() *Module {
@@ -11,10 +15,12 @@ func (m *Module) Encrypt(key *jose.JSONWebKey, payload string, encAlg jose.Conte
 	if err != nil {
 		return "", err
 	}
+
 	obj, err := crypter.Encrypt([]byte(payload))
 	if err != nil {
 		return "", err
 	}
+
 	return obj.CompactSerialize()
 }
 
@@ -23,6 +29,11 @@ func (m *Module) DecryptAsString(key *jose.JSONWebKey, ciphertext string) (strin
 	if err != nil {
 		return "", err
 	}
+
 	plaintext, err := obj.Decrypt(key.Key)
-	return string(plaintext), err
+	if err != nil {
+		return "", err
+	}
+
+	return string(plaintext), nil
 }

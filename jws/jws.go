@@ -1,20 +1,32 @@
 package jws
 
+import (
+	"gopkg.in/square/go-jose.v2"
+)
+
 type Module struct{}
 
 func New() *Module {
 	return &Module{}
 }
+
 func (m *Module) Sign(key *jose.JSONWebKey, payload string, sigAlg jose.SignatureAlgorithm) (string, error) {
 	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: sigAlg, Key: key}, nil)
 	if err != nil {
 		return "", err
 	}
+
 	obj, err := signer.Sign([]byte(payload))
 	if err != nil {
 		return "", err
 	}
-	return obj.CompactSerialize()
+	
+	serializedObj, err := obj.CompactSerialize()
+	if err != nil {
+		return "", err
+	}
+
+	return serializedObj, nil
 }
 
 func (m *Module) Verify(key *jose.JSONWebKey, jws string) (string, error) {
@@ -22,6 +34,11 @@ func (m *Module) Verify(key *jose.JSONWebKey, jws string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	plaintextBytes, err := obj.Verify(key)
+	if err != nil {
+		return "", err
+	}
+
 	return string(plaintextBytes), err
 }
